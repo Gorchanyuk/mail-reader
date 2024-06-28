@@ -6,6 +6,31 @@ volumes:
 
 services:
 
+  mail_reader:
+    image: 'mail-reader:latest'
+    build:
+      context: .
+    container_name: mail-reader
+    ports:
+      - "8090:8090"
+    depends_on:
+      rabbitMQ:
+        condition: service_started
+      minio:
+        condition: service_started
+    environment:
+      - MAIL_HOST=
+      - MAIL_USERNAME=
+      - MAIL_PASSWORD=
+      - SPRING_RABBITMQ_HOST=rabbitMQ
+      - SPRING_RABBITMQ_USERNAME=admin
+      - SPRING_RABBITMQ_PASSWORD=admin
+      - MINIO_BUCKET_NAME=mail
+      - MINIO_USERNAME=admin
+      - MINIO_PASSWORD=admin123456
+      - MINIO_HOST=minio
+      - MAIL_CHECK_INTERVAL=* * 0 * * *
+
   rabbitMQ:
     image: rabbitmq:3-management-alpine
     environment:

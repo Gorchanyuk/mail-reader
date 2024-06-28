@@ -1,3 +1,5 @@
+server.port=8090
+
 mail.imaps.transport-protocol=imaps
 mail.imaps.host=${MAIL_HOST:}
 mail.imaps.port=993
@@ -26,7 +28,8 @@ spring.rabbitmq.password=${SPRING_RABBITMQ_PASSWORD:admin}
 props.minio.bucket-name=${MINIO_BUCKET_NAME:mail}
 props.minio.username=${MINIO_USERNAME:admin}
 props.minio.password=${MINIO_PASSWORD:admin123456}
-props.minio.url=${MINIO_URL:http://127.0.0.1:9000}
+minio.host=${MINIO_HOST:127.0.0.1}
+props.minio.url=http://${minio.host}:9000
 
 mail.check.interval=${MAIL_CHECK_INTERVAL:0,15,30,45 * * * * *}
 
