@@ -4,6 +4,8 @@ import jakarta.mail.*;
 import jakarta.mail.internet.MimeMultipart;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Element;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
@@ -67,7 +69,7 @@ public class MailReceiverServiceImpl implements MailReceiverService {
         String subject = ProxyMail.getSubject(message);
         return AppealDto.builder()
                 .groups(group)
-                .theme(extractStringServiceImpl.getSubject(subject, REGEX))
+                .theme(extractStringServiceImpl.extractString(subject, REGEX))
                 .createdBy(emailAddress)
                 .created(LocalDateTime.ofInstant(ProxyMail.getReceivedDate(message).toInstant(), ZoneId.systemDefault()))
                 .text(getTextFromMessage(message))
@@ -82,27 +84,37 @@ public class MailReceiverServiceImpl implements MailReceiverService {
             return ProxyMail.getContent(part).toString();
         }
         if (ProxyMail.isEqualsType(part, ContentType.HTML.getValue())) {
-            return "\n" + org.jsoup.Jsoup
-                    .parse(ProxyMail.getContent(part).toString())
-                    .body()
-                    .child(0).text();
+            return getTextFromHtmlType(part);
         }
         if (ProxyMail.isEqualsType(part, ContentType.ALTERNATIVE.getValue())) {
-            MimeMultipart mimeMultipart = (MimeMultipart) ProxyMail.getContent(part);
-            //парсим первый попавшийся фрагмент, так как все они одинаковые
-            for (int i = 0; i < ProxyMail.getCount(mimeMultipart); i++){
-                BodyPart bodyPart = ProxyMail.getBodyPart(mimeMultipart, i);
-                if(ProxyMail.isEqualsType(bodyPart, ContentType.HTML.getValue())){
-                    return getTextFromMessage(bodyPart);
-                }
-            }
-            return getTextFromMessage(ProxyMail.getBodyPart(mimeMultipart, 0));
+            return getTextFromAlternativeType(part);
         }
         if (ProxyMail.isEqualsType(part, ContentType.MULTIPART.getValue())) {
             MimeMultipart mimeMultipart = (MimeMultipart) ProxyMail.getContent(part);
             return getTextFromMimeMultipart(mimeMultipart);
         }
         return "";
+    }
+
+    private String getTextFromAlternativeType(Part part) {
+        MimeMultipart mimeMultipart = (MimeMultipart) ProxyMail.getContent(part);
+        //парсим первый попавшийся фрагмент, так как все они одинаковые
+        for (int i = 0; i < ProxyMail.getCount(mimeMultipart); i++){
+            BodyPart bodyPart = ProxyMail.getBodyPart(mimeMultipart, i);
+            if(ProxyMail.isEqualsType(bodyPart, ContentType.HTML.getValue())){
+                return getTextFromMessage(bodyPart);
+            }
+        }
+        return getTextFromMessage(ProxyMail.getBodyPart(mimeMultipart, 0));
+    }
+
+    private String getTextFromHtmlType(Part part) {
+        Element body = Jsoup
+                .parse(ProxyMail.getContent(part).toString())
+                .body();
+        return "\n" + body.children().stream()
+                .findFirst()
+                .orElse(body).text();
     }
 
     private String getTextFromMimeMultipart(MimeMultipart mimeMultipart) {

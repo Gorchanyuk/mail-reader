@@ -12,7 +12,7 @@ public
 class DecoderService {
 
     public static String decode (String str){
-        // Раскодирование строки
+        // Декодирование строки, если она закодированна
         try {
             log.info("Декодируем строку: {}", str);
             return MimeUtility.decodeText(str);

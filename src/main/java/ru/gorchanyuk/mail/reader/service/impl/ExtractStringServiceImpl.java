@@ -11,7 +11,7 @@ import java.util.regex.Pattern;
 public class ExtractStringServiceImpl implements ExtractStringService {
 
     @Override
-    public String getSubject(String str, String reg) {
+    public String extractString(String str, String reg) {
         if (ObjectUtils.isEmpty(str)) {
             return "(без темы)";
         }

@@ -26,6 +26,7 @@ public class SessionConfig {
 
     @Bean("mailProps")
     public Properties getProperties() {
+
         Properties properties = new Properties();
         properties.setProperty("mail.store.protocol", mailProperties.getTransportProtocol());
         properties.setProperty("mail.imaps.host", mailProperties.getHost());
